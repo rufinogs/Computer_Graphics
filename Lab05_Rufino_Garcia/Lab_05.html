@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lab_05 Rufino García</title>
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+
+  <div class="viewport"></div>
+
+  <script src="three.min.js"></script>
+  <script src="physi.js"></script>
+  <script>
+    var container, scene, renderer, camera, light, ball, plane;
+    var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
+
+    var clock = new THREE.Clock();
+
+    Physijs.scripts.worker = 'physijs_worker.js';
+    Physijs.scripts.ammo = 'ammo.js';
+
+    container = document.querySelector('.viewport');
+
+    WIDTH = window.innerWidth,
+    HEIGHT = window.innerHeight;
+
+    VIEW_ANGLE = 65,
+    ASPECT = WIDTH / HEIGHT,
+    NEAR = 10,
+    FAR = 1000;
+
+    scene = new Physijs.Scene();
+    scene.setGravity(new THREE.Vector3( 0, -70, 0 ));
+    scene.addEventListener('update', function() {
+      scene.simulate(undefined, 2);
+    });
+
+    renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+
+    renderer.setSize(WIDTH, HEIGHT);
+    renderer.shadowMapEnabled = true;
+    renderer.shadowMapSoft = true;
+    renderer.shadowMapType = THREE.PCFShadowMap;
+    renderer.shadowMapAutoUpdate = true;
+
+    container.appendChild(renderer.domElement);
+
+    camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+
+    camera.position.set(90, 60, 120);
+    camera.lookAt(scene.position);
+    scene.add(camera);
+
+    light = new THREE.DirectionalLight(0xffffff);
+
+    light.position.set(0, 100, 60);
+    light.castShadow = true;
+    light.shadowCameraLeft = -60;
+    light.shadowCameraTop = -60;
+    light.shadowCameraRight = 60;
+    light.shadowCameraBottom = 60;
+    light.shadowCameraNear = 1;
+    light.shadowCameraFar = 1000;
+    light.shadowBias = -.0001
+    light.shadowMapWidth = light.shadowMapHeight = 1024;
+    light.shadowDarkness = .7;
+
+    scene.add(light);
+    
+    plane = new Physijs.BoxMesh(
+      new THREE.CubeGeometry(200, 200, 2, 10, 10),
+      Physijs.createMaterial(
+        new THREE.MeshLambertMaterial({
+          color: 0xeeeeee
+        }),
+        .4,
+        .99
+      ),
+      0
+    );
+
+    plane.rotation.x = -Math.PI / 2;
+    plane.rotation.y = Math.PI / 54;
+    plane.receiveShadow = true;
+
+    scene.add(plane);
+
+    plane2 = new Physijs.BoxMesh(
+      new THREE.CubeGeometry(100, 80, 2, 10, 10),
+      Physijs.createMaterial(
+        new THREE.MeshLambertMaterial({
+          color: 0xeeeeee
+        }),
+        .9,
+        .39
+      ),
+      0
+    );
+
+    plane2.rotation.x = -Math.PI / 4;
+    plane2.rotation.y = Math.PI / 12;
+    plane2.receiveShadow = true;
+
+    scene.add(plane2);
+
+    plane3 = new Physijs.BoxMesh(
+      new THREE.CubeGeometry(100, 80, 2, 10, 10),
+      Physijs.createMaterial(
+        new THREE.MeshLambertMaterial({
+          color: 0xeeeeee
+        }),
+        .7,
+        .99
+      ),
+      0
+    );
+
+    plane3.rotation.x = Math.PI / 4;
+    plane3.rotation.y = -Math.PI / 12;
+    plane3.receiveShadow = true;
+
+    scene.add(plane3);
+
+
+    setInterval(function() {
+      ball = new Physijs.SphereMesh(
+        new THREE.SphereGeometry(
+          Math.random() * (10 - 3) + 1,
+          16,
+          16
+        ),
+        Physijs.createMaterial(
+          new THREE.MeshLambertMaterial({
+            color: 0x66E200,
+            reflectivity: .87
+          }),
+          .4,
+          .99
+        ),
+        8
+      );
+
+      box = new Physijs.BoxMesh(
+        new THREE.CubeGeometry(
+          Math.random() * (10 - 3) + 1,
+          10,
+          10,
+          10
+        ),
+        Physijs.createMaterial(
+          new THREE.MeshLambertMaterial({
+            color: 0xFFF900,
+            reflectivity: .87
+          }),
+          .4,
+          .99
+        ),
+        8
+      );
+
+      var r = {
+        x: Math.random() * (Math.PI - Math.PI / 12) + Math.PI / 12,
+        y: Math.random() * (Math.PI - Math.PI / 12) + Math.PI / 12,
+        z: Math.random() * (Math.PI - Math.PI / 12) + Math.PI / 12
+      };
+
+      ball.rotation.set(r.x, r.y, r.z);
+      ball.position.y = 80;
+      ball.castShadow = true;
+      ball.receiveShadow = true;
+
+      box.position.set(
+        Math.random() * 15 - 7.5,
+        25,
+        Math.random() * 15 - 7.5
+      );
+
+      box.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+
+      box.castShadow = true;
+      box.position.y = 50;
+      box.position.x = 20;
+      box.receiveShadow = true;
+      scene.add(box);
+      scene.add(ball);
+    }, 600);
+
+    render();
+    scene.simulate()
+
+    function render() {
+      for (var i = 5; i < scene.children.length - 5; i++) {
+        var obj = scene.children[i];
+
+        //if (obj.position.y <= -50) {
+        //  scene.remove(obj);
+        //}
+      }
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(render);
+    }
+  </script>
+</body>
+</html>
